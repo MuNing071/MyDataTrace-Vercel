@@ -2,7 +2,7 @@
 
 import { useAppStore } from '@/store/useAppStore';
 import { generateTimePoints, generateColorPalette } from '@/utils/helpers';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -130,6 +130,16 @@ export default function ChartVisualization() {
       color,
     };
   });
+  
+  // 确保图表容器和所有子元素都有明确的背景色
+  useEffect(() => {
+    const container = document.getElementById('chart-container');
+    if (container) {
+      container.style.backgroundColor = '#ffffff';
+      container.style.opacity = '1';
+      container.style.filter = 'none';
+    }
+  }, []);
 
   const options = {
     responsive: true,

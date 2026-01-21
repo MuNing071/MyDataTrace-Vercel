@@ -29,13 +29,39 @@ export default function ExportButton({ targetId, filename = 'mydatatrace-chart' 
       element.style.opacity = '1';
       element.style.filter = 'none';
 
+      // 临时移除所有可能影响导出的动画和过渡效果
+      const originalClasses = element.className;
+      element.className = element.className.replace(/animate-\w+/g, '');
+      element.className = element.className.replace(/transition-\w+/g, '');
+      
+      // 临时移除所有卡片的过渡效果
+      const cards = element.querySelectorAll('.card-hover-effect');
+      const originalCardClasses: string[] = [];
+      cards.forEach((card, index) => {
+        originalCardClasses[index] = card.className;
+        card.className = card.className.replace(/card-hover-effect/g, '');
+        card.className = card.className.replace(/transition-\w+/g, '');
+      });
+      
+      // 优化html2canvas配置
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 3, // 提高分辨率
         backgroundColor: '#ffffff',
         logging: false,
         useCORS: true,
         allowTaint: true,
-        removeContainer: true
+        removeContainer: true,
+        // 添加更多选项确保高质量导出
+        ignoreElements: (el) => {
+          // 忽略可能影响导出的元素
+          return el.classList.contains('animate-fade-in') || el.classList.contains('animate-slide-up');
+        }
+      });
+      
+      // 恢复原始样式
+      element.className = originalClasses;
+      cards.forEach((card, index) => {
+        card.className = originalCardClasses[index];
       });
 
       // 恢复原始样式
