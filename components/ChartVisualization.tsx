@@ -133,28 +133,8 @@ export default function ChartVisualization() {
   
   // 确保图表容器和所有子元素都有明确的背景色和样式
   useEffect(() => {
-    const container = document.getElementById('chart-container');
-    if (container) {
-      container.style.backgroundColor = '#ffffff';
-      container.style.opacity = '1';
-      container.style.filter = 'none'; // 移除所有滤镜效果
-    }
-    
-    // 确保所有卡片都有明确的背景色
-    const cards = container?.querySelectorAll('.bg-white');
-    cards?.forEach(card => {
-      (card as HTMLElement).style.backgroundColor = '#ffffff';
-      (card as HTMLElement).style.opacity = '1';
-      (card as HTMLElement).style.filter = 'none';
-    });
-    
-    // 确保所有图表div都有明确的背景色
-    const chartDivs = container?.querySelectorAll('[style*="height: \'350px\'"]');
-    chartDivs?.forEach(div => {
-      (div as HTMLElement).style.backgroundColor = '#ffffff';
-      (div as HTMLElement).style.opacity = '1';
-      (div as HTMLElement).style.filter = 'none';
-    });
+    // 移除旧的useEffect，因为我们已经在组件中设置了合适的背景色和样式
+    // 现在使用app/page.tsx中的container作为导出目标
   }, []);
   
   const options = {
@@ -215,7 +195,7 @@ export default function ChartVisualization() {
   };
 
   return (
-    <div id="chart-container" className="mb-8 animate-slide-up">
+    <div className="mb-8 animate-slide-up">
       <h2 className="text-2xl font-bold mb-4 text-black">📊 时光数绘轨迹图</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {chartData.map((chart, index) => (
