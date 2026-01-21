@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import html2canvas from 'html2canvas';
 
 interface ExportButtonProps {
@@ -21,11 +21,25 @@ export default function ExportButton({ targetId, filename = 'mydatatrace-chart' 
         return;
       }
 
+      // 设置临时样式以确保导出质量
+      const originalStyles = {
+        opacity: element.style.opacity,
+        filter: element.style.filter
+      };
+      element.style.opacity = '1';
+      element.style.filter = 'none';
+
       const canvas = await html2canvas(element, {
         scale: 2,
         backgroundColor: '#ffffff',
         logging: false,
+        useCORS: true,
+        allowTaint: true,
+        removeContainer: true
       });
+
+      // 恢复原始样式
+      Object.assign(element.style, originalStyles);
 
       const link = document.createElement('a');
       link.download = `${filename}.${format}`;

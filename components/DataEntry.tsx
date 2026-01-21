@@ -6,21 +6,20 @@ import { useState, useEffect } from 'react';
 
 export default function DataEntry() {
   const { timeConfig, configItems, data, setData } = useAppStore();
-  const [expandedTimePoint, setExpandedTimePoint] = useState<string | null>(null);
-
   const timePoints = generateTimePoints(timeConfig);
+  const [expandedTimePoint, setExpandedTimePoint] = useState<string | null>(timePoints.length > 0 ? timePoints[0] : null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // 当时间点变化时，检查当前展开的时间点是否仍然存在
+    // 当时间点变化时，如果当前没有展开的时间点或展开的时间点已不存在，设置为第一个时间点
     if (timePoints.length > 0) {
       if (!expandedTimePoint || !timePoints.includes(expandedTimePoint)) {
-        // 如果当前展开的时间点不存在，设置为第一个时间点
         setExpandedTimePoint(timePoints[0]);
       }
     } else {
       setExpandedTimePoint(null);
     }
-  }, [timePoints, expandedTimePoint]);
+  }, [timePoints]); // 移除expandedTimePoint依赖，防止点击收起后立即重新展开
 
   const handleScoreChange = (itemName: string, timePoint: string, value: string) => {
     const numValue = parseFloat(value);

@@ -2,7 +2,7 @@
 
 import { useAppStore } from '@/store/useAppStore';
 import { generateTimePoints, generateColorPalette } from '@/utils/helpers';
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,6 +13,9 @@ import {
   Tooltip,
   Legend,
   Filler,
+  ChartDataset,
+  ChartMeta,
+  TooltipItem,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
@@ -27,18 +30,22 @@ ChartJS.register(
   Filler
 );
 
+interface ChartDatasetWithNotes extends ChartDataset<'line'> {
+  notes?: string[];
+}
+
 const chartNotePlugin = {
   id: 'chartNotePlugin',
-  afterDraw: (chart: any) => {
+  afterDraw: (chart: ChartJS<'line'>) => {
     const ctx = chart.ctx;
     
     // 遍历所有数据集
-    chart.data.datasets.forEach((dataset: any, datasetIndex: number) => {
-      const meta = chart.getDatasetMeta(datasetIndex);
+    chart.data.datasets.forEach((dataset: ChartDatasetWithNotes, datasetIndex: number) => {
+      const meta = chart.getDatasetMeta(datasetIndex) as ChartMeta<'line'>;
       if (!meta.data) return;
 
       // 遍历当前数据集的所有点
-      meta.data.forEach((point: any, index: number) => {
+      meta.data.forEach((point: { x?: number; y?: number }, index: number) => {
         if (point && point.x !== undefined && point.y !== undefined) {
           // 获取当前点的说明文本
           const note = dataset.notes?.[index];
@@ -48,9 +55,9 @@ const chartNotePlugin = {
 
             ctx.save();
             ctx.font = '11px Arial';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 1;
+            ctx.fillStyle = '#333333';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
             
             // 计算文本尺寸
             const textWidth = ctx.measureText(note).width;
@@ -58,11 +65,14 @@ const chartNotePlugin = {
             const boxWidth = Math.max(textWidth + padding * 2, 80);
             const boxHeight = 22;
             
-            // 绘制背景框
+            // 绘制背景框（位于点下方）
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.strokeStyle = typeof dataset.borderColor === 'string' ? dataset.borderColor : '#333333';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.roundRect(
               x - boxWidth / 2,
-              y - boxHeight - 10,
+              y + 10, // 调整位置到点下方
               boxWidth,
               boxHeight,
               4
@@ -71,10 +81,8 @@ const chartNotePlugin = {
             ctx.stroke();
             
             // 绘制文本
-            ctx.fillStyle = '#333';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(note, x, y - 21);
+            ctx.fillStyle = '#333333';
+            ctx.fillText(note, x, y + 21); // 调整文本位置到框内
             
             ctx.restore();
           }
@@ -94,10 +102,6 @@ export default function ChartVisualization() {
     styleConfig.colorPalette,
     styleConfig.customColors
   );
-
-  const nItems = configItems.length;
-  const nCols = 2;
-  const nRows = Math.ceil(nItems / nCols);
 
   const chartData = configItems.map((item, index) => {
     const scores = timePoints.map(tp => data[item]?.[tp]?.score || 70);
@@ -147,7 +151,7 @@ export default function ChartVisualization() {
       },
       tooltip: {
         callbacks: {
-          afterLabel: (context: any) => {
+          afterLabel: (context: TooltipItem<'line'>) => {
             const dataIndex = context.dataIndex;
             const chartIndex = chartData.findIndex(
               d => d.datasets[0].label === context.dataset.label
@@ -184,7 +188,7 @@ export default function ChartVisualization() {
   };
 
   return (
-    <div className="mb-8 animate-slide-up">
+    <div id="chart-container" className="mb-8 animate-slide-up">
       <h2 className="text-2xl font-bold mb-4 text-black">📊 时光数绘轨迹图</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {chartData.map((chart, index) => (
@@ -193,12 +197,13 @@ export default function ChartVisualization() {
             className="bg-white p-4 rounded-xl border-2 shadow-lg card-hover-effect"
             style={{ borderColor: chart.color }}
           >
-            <div style={{ height: '350px' }}>
+            <div style={{ height: '350px', backgroundColor: '#ffffff' }}>
               <Line
-                ref={(el: any) => (chartRefs.current[index] = el)}
+                ref={(el) => (chartRefs.current[index] = el as ChartJS<'line'> | null)}
                 data={chart}
                 options={{
                   ...options,
+                  backgroundColor: '#ffffff',
                   plugins: {
                     ...options.plugins,
                     title: {
