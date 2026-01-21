@@ -16,30 +16,37 @@ export default function ExportButton({ targetId, filename = 'mydatatrace-chart' 
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      // 直接获取元素，不做复杂的样式修改
       const element = document.getElementById(targetId);
       if (!element) {
         alert('未找到要导出的元素');
         return;
       }
 
-      // 使用最简单的html2canvas配置，避免复杂选项导致问题
       const canvas = await html2canvas(element, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        logging: false,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById(targetId);
+          if (clonedElement) {
+            clonedElement.style.backgroundColor = '#ffffff';
+            clonedElement.style.padding = '20px';
+          }
+        }
       });
 
-      // 生成JPG图片并下载
       const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
       const link = document.createElement('a');
       link.download = `${filename}.${format}`;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('导出失败:', error);
-      alert('导出失败，请重试');
+      alert(`导出失败: ${error instanceof Error ? error.message : '未知错误'}`);
     } finally {
       setIsExporting(false);
     }
