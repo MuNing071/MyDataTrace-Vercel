@@ -66,7 +66,7 @@ const chartNotePlugin = {
             const boxHeight = 22;
             
             // 绘制背景框（位于点下方）
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            // ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
             ctx.strokeStyle = typeof dataset.borderColor === 'string' ? dataset.borderColor : '#333333';
             ctx.lineWidth = 1.5;
             ctx.beginPath();
