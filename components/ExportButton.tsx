@@ -46,7 +46,7 @@ export default function ExportButton({ targetId, filename = 'mydatatrace-chart' 
       // 优化html2canvas配置
       const canvas = await html2canvas(element, {
         scale: 3, // 提高分辨率
-        backgroundColor: '#ffffff',
+        // backgroundColor: '#ffffff',
         logging: false,
         useCORS: true,
         allowTaint: true,
