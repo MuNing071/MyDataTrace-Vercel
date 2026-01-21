@@ -10,7 +10,8 @@ interface ExportButtonProps {
 
 export default function ExportButton({ targetId, filename = 'mydatatrace-chart' }: ExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
-  const [format, setFormat] = useState<'png' | 'jpg'>('png');
+  // 只支持jpg格式
+  const format = 'jpg';
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -24,10 +25,13 @@ export default function ExportButton({ targetId, filename = 'mydatatrace-chart' 
       // 设置临时样式以确保导出质量
       const originalStyles = {
         opacity: element.style.opacity,
-        filter: element.style.filter
+        filter: element.style.filter,
+        backgroundColor: element.style.backgroundColor
       };
+      // 确保元素完全可见，无透明效果
       element.style.opacity = '1';
       element.style.filter = 'none';
+      element.style.backgroundColor = '#ffffff';
 
       // 临时移除所有可能影响导出的动画和过渡效果
       const originalClasses = element.className;
@@ -43,10 +47,10 @@ export default function ExportButton({ targetId, filename = 'mydatatrace-chart' 
         card.className = card.className.replace(/transition-\w+/g, '');
       });
       
-      // 优化html2canvas配置
+      // 优化html2canvas配置，专门针对jpg高质量导出
       const canvas = await html2canvas(element, {
         scale: 3, // 提高分辨率
-        // backgroundColor: '#ffffff',
+        backgroundColor: '#ffffff', // 确保白色背景
         logging: false,
         useCORS: true,
         allowTaint: true,
@@ -67,9 +71,10 @@ export default function ExportButton({ targetId, filename = 'mydatatrace-chart' 
       // 恢复原始样式
       Object.assign(element.style, originalStyles);
 
+      // 生成高质量jpg图片，质量设置为1.0
       const link = document.createElement('a');
       link.download = `${filename}.${format}`;
-      link.href = canvas.toDataURL(`image/${format}`, 0.95);
+      link.href = canvas.toDataURL(`image/${format}`, 1.0);
       link.click();
     } catch (error) {
       console.error('导出失败:', error);
@@ -84,19 +89,6 @@ export default function ExportButton({ targetId, filename = 'mydatatrace-chart' 
       <h2 className="text-2xl text-black font-bold mb-4">📷 导出图片</h2>
       <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200">
         <div className="flex flex-wrap gap-4 items-center">
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              输出格式
-            </label>
-            <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value as 'png' | 'jpg')}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-black input-focus-effect"
-            >
-              <option value="png">PNG</option>
-              <option value="jpg">JPG</option>
-            </select>
-          </div>
           <button
             onClick={handleExport}
             disabled={isExporting}
@@ -106,7 +98,7 @@ export default function ExportButton({ targetId, filename = 'mydatatrace-chart' 
           </button>
         </div>
         <p className="text-sm text-gray-600 mt-2">
-          点击按钮将图表导出为图片文件
+          点击按钮将图表导出为高质量JPG图片文件
         </p>
       </div>
     </div>
